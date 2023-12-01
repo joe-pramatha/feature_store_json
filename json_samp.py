@@ -31,8 +31,24 @@ grouped_df['Features'] = grouped_df.apply(lambda row: {
 # Drop unnecessary columns
 grouped_df.drop(['Amount', 'Trn_Count', 'Account_Type', 'Transaction_Type'], axis=1, inplace=True)
 
+# Function to flatten JSON column
+def flatten_json_column(grouped_df, json_column):
+    # Use pd.json_normalize to flatten the JSON data
+    normalized_data = pd.json_normalize(grouped_df[json_column])
+    
+    # Combine the flattened data with the original DataFrame
+    df = pd.concat([grouped_df, normalized_data], axis=1)
+    
+    # Drop the original JSON column
+    df = df.drop(columns=[json_column])
+    
+    return df
+
+# Flatten the JSON column 'Features'
+df = flatten_json_column(grouped_df, 'Features')
+
 # Dropdown to select columns
-selected_column = grouped_df.selectbox('Select a column:', grouped_df.columns)
+selected_column = df.selectbox('Select a column:', df.columns)
 
 # Display the selected column
 st.write(f"Selected column: {selected_column}")
