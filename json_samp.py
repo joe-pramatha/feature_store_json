@@ -3,7 +3,7 @@ import pandas as pd
 
 # Sample DataFrame
 
-sample_data = 'Data1.xlsx'
+sample_data = 'https://github.com/joe-pramatha/feature_store_json/blob/main/Json1.xlsx'
 sample_data1=pd.read_excel(sample_data)
 
 sample_data1['Date'] = pd.to_datetime(sample_data1['Date'])
