@@ -2,25 +2,35 @@ import streamlit as st
 import pandas as pd
 
 # Sample DataFrame
-data = {
-    'Customer_ID': [1, 1, 2, 2, 3],
-    'Account_ID': ['A123', 'A123', 'B456', 'B456', 'C789'],
-    'Account_Type': ['Savings', 'Savings', 'Checking', 'Checking', 'Savings'],
-    'Transaction_Type': ['Deposit', 'Withdrawal', 'Deposit', 'Withdrawal', 'Deposit'],
-    'Date': ['2023-01-01', '2023-01-01', '2023-01-02', '2023-01-02', '2023-01-03'],
-    'Amount': [100, 50, 200, 100, 150],
-    'Trn_Count': [1, 1, 1, 1, 1]
-}
 
-df = pd.DataFrame(data)
+sample_data = 'Data1.xlsx'
+sample_data1=pd.read_excel(sample_data)
 
-# Create JSON columns dynamically
-json_columns = ['JSON_Column_1', 'JSON_Column_2']  # Replace with your actual JSON column names
-for col in json_columns:
-    df[col] = df.apply(lambda row: f'{{"amount": {row["Amount"]}, "trn_count": {row["Trn_Count"]}}}', axis=1)
+sample_data1['Date'] = pd.to_datetime(sample_data1['Date'])
+
+# Group by 'Customer_ID', 'Account_ID', and 'Date'
+grouped_df = sample_data1.groupby(['Customer_ID', 'Account_ID', 'Date', 'Account_Type', 'Transaction_Type']).agg({
+    'Amount': 'sum',
+    'Trn_Count': 'sum'
+}).reset_index()
+
+# Create the desired JSON structure
+# Create the desired JSON structure
+grouped_df['Features'] = grouped_df.apply(lambda row: {
+    'amount': {
+        'trading': row['Amount'] if row['Transaction_Type'] == 'Trading' else 0,
+        'deposit': row['Amount'] if row['Transaction_Type'] == 'Deposit' else 0
+    },
+    'trn_count': {
+        'trading': row['Trn_Count'] if row['Transaction_Type'] == 'Trading' else 0,
+        'deposit': row['Trn_Count'] if row['Transaction_Type'] == 'Deposit' else 0
+    }
+}, axis=1)
+# Drop unnecessary columns
+grouped_df.drop(['Amount', 'Trn_Count', 'Account_Type', 'Transaction_Type'], axis=1, inplace=True)
 
 # Dropdown to select columns
-selected_column = st.selectbox('Select a column:', df.columns)
+selected_column = grouped_df.selectbox('Select a column:', grouped_df.columns)
 
 # Display the selected column
 st.write(f"Selected column: {selected_column}")
